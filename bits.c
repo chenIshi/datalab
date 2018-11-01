@@ -111,7 +111,8 @@ NOTES:
  */
 int absVal(int x)
 {
-    return 42;
+    int sign = x >> 31;
+    return (x ^ sign) - sign;
 }
 
 /*
@@ -124,7 +125,11 @@ int absVal(int x)
  */
 int addOK(int x, int y)
 {
-    return 42;
+    int sign_x = x << 31;
+    int sign_y = y << 31;
+    int sign_sum = (x + y) << 31;
+    // de morgan's law
+    return !(sign_x & sign_y) | sign_x;
 }
 
 /*
@@ -137,7 +142,12 @@ int addOK(int x, int y)
  */
 int allEvenBits(int x)
 {
-    return 42;
+    x = x & (x >> 16);
+    x = x & (x >> 8);
+    x = x & (x >> 4);
+    x = x & (x >> 2);
+    x = x & 0x1; 
+    return x;
 }
 
 /*
@@ -150,7 +160,12 @@ int allEvenBits(int x)
  */
 int allOddBits(int x)
 {
-    return 42;
+    x = x & (x >> 16);
+    x = x & (x >> 8);
+    x = x & (x >> 4);
+    x = x & (x >> 2);
+    x = (x >> 1) & 0x1;     
+    return x;
 }
 
 /*
@@ -163,7 +178,12 @@ int allOddBits(int x)
  */
 int anyEvenBit(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x & 0x1;    
+    return x;
 }
 
 /*
@@ -176,7 +196,12 @@ int anyEvenBit(int x)
  */
 int anyOddBit(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = (x >> 1) & 0x1;     
+    return x;
 }
 
 /*
@@ -188,7 +213,9 @@ int anyOddBit(int x)
  */
 int bang(int x)
 {
-    return 42;
+    /* for that we should have to tell between zero and non-zero 
+       reference to implementation of isNotZero() might help */
+    return ~(x | (~x + 1) >> 31) & 0x1;
 }
 
 /*
@@ -200,7 +227,8 @@ int bang(int x)
  */
 int bitAnd(int x, int y)
 {
-    return 42;
+    /* de morgan's law*/
+    return ~(~x | ~y);
 }
 
 /*
@@ -227,7 +255,11 @@ int bitCount(int x)
  */
 int bitMask(int highbit, int lowbit)
 {
-    return 42;
+    /* ignore lowbit EX: 0x00111111 */
+    int allone = ~1 + 1;
+    int highpart = ~(allone << ( highbit + 1));
+    int addlow = (highpart >> lowbit) << lowbit;
+    return addlow;
 }
 
 /*
@@ -240,7 +272,7 @@ int bitMask(int highbit, int lowbit)
  */
 int bitMatch(int x, int y)
 {
-    return 42;
+    return x & y;
 }
 
 /*
@@ -252,7 +284,8 @@ int bitMatch(int x, int y)
  */
 int bitNor(int x, int y)
 {
-    return 42;
+    /* de morgan's law */
+    return (~x & ~y);
 }
 
 /*
@@ -264,7 +297,8 @@ int bitNor(int x, int y)
  */
 int bitOr(int x, int y)
 {
-    return 42;
+    /* de morgan's law */
+    return ~(~x & ~y);
 }
 
 /*
@@ -301,6 +335,7 @@ int bitReverse(int x)
  */
 int bitXor(int x, int y)
 {
+    /* de morgan's law */
     return 42;
 }
 
@@ -315,6 +350,7 @@ int bitXor(int x, int y)
  */
 int byteSwap(int x, int n, int m)
 {
+    /* little endian machine */
     return 42;
 }
 
@@ -389,7 +425,11 @@ int dividePower2(int x, int n)
  */
 int evenBits(void)
 {
-    return 42;
+    int magicNum = 5;
+    magicNum = magicNum | (magicNum << 16);
+    magicNum = magicNum | (magicNum << 8);
+    magicNum = magicNum | (magicNum << 2);
+    return magicNum;
 }
 
 /*
@@ -621,7 +661,11 @@ unsigned floatUnsigned2Float(unsigned u)
  */
 int getByte(int x, int n)
 {
-    return 42;
+    /* little endian */
+    /* ERROR :: modify shift_offset*/
+    int shift_offset = 1 << n;
+    int last_byte = x >> shift_offset;
+    return last_byte & 0x11;
 }
 
 /*
@@ -665,7 +709,15 @@ int howManyBits(int x)
  */
 int implication(int x, int y)
 {
-    return 42;
+    /* truth table of implication
+       ------------
+        0 | 0 | 1 
+        1 | 0 | 0 
+        0 | 1 | 1 
+        1 | 1 | 1 */
+    /* return val should be (x ^ y) | (~x & y)
+       while & is forbidden, using de morgan's law*/
+    return (x ^ y) | ~(x | ~y);
 }
 
 /*
@@ -692,6 +744,10 @@ int intLog2(int x)
  */
 int isAsciiDigit(int x)
 {
+    /* ranged from 0x00110000 to 0x00111001 */
+    /* part 1 : 0x00110000 to 0x00110111*/
+    int part1 = (x >> 3);
+    /* part 2 : 0x00110000 to 0x00110001*/
     return 42;
 }
 
@@ -752,7 +808,7 @@ int isLessOrEqual(int x, int y)
  */
 int isNegative(int x)
 {
-    return 42;
+    return x >> 31;
 }
 
 /*
@@ -764,7 +820,7 @@ int isNegative(int x)
  */
 int isNonNegative(int x)
 {
-    return 42;
+    return !(x >> 31);
 }
 
 /*
@@ -777,7 +833,11 @@ int isNonNegative(int x)
  */
 int isNonZero(int x)
 {
-    return 42;
+    /* code reference to https://stackoverflow.com/questions/3912112/check-if-a-number-is-non-zero-using-bitwise-operators-in-c
+       for any number except 0, it has different expr for x and ~x
+       while in 2s' complement system, +0 and -0 have the same expr
+       by utilizing this attribute, (x | (~x + 1)) will only return 0x0 if x is 0 */
+    return ((x | (~x + 1)) >> 31) & 1;
 }
 
 /*
@@ -975,7 +1035,7 @@ int multFiveEighths(int x)
  */
 int negate(int x)
 {
-    return 42;
+    return ~x + 1;
 }
 
 /*
@@ -1157,7 +1217,7 @@ int thirdBits(void)
  */
 int tmax(void)
 {
-    return 42;
+    return  ~(1 >> 31);
 }
 
 /*
@@ -1168,7 +1228,7 @@ int tmax(void)
  */
 int tmin(void)
 {
-    return 42;
+    return 1 >> 31;
 }
 
 /*
